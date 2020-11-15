@@ -33,8 +33,9 @@ public class MainActivity extends Activity implements SensorEventListener{
     private Sensor sensor;
     private float acc[]=new float[3];
     private File fi =null;
-    private File fidir =null;
+    private File fiLocal = null;
     private FileOutputStream fos =null;
+    private FileOutputStream fosLocal = null;
     private Calendar mycalendar;
     private Timer updateTime;
     private TimerTask tt =null;
@@ -48,7 +49,6 @@ public class MainActivity extends Activity implements SensorEventListener{
 
     //磁场
     private float mag[] = new float[3];
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,26 +101,29 @@ public class MainActivity extends Activity implements SensorEventListener{
                 SimpleDateFormat formatter    =   new    SimpleDateFormat    ("HH:mm:ss");
                 Date curDate    =   new    Date(System.currentTimeMillis());//获取当前时间
                 String    string    =    formatter.format(curDate);
-                //更新显示在屏幕上的信息
-                t1.setText(string + "\n"
+                String values = string + "\n"
                         + "加速度：" + "x=" + acc[0] + ",y=" + acc[1] + ",z=" + acc[2] + "\n"
                         + "陀螺仪：" + "x=" + angle[0] + ",y=" + angle[1] + ",y=" + angle[2] + "\n"
-                        +  "磁场：" + "x=" + mag[0] + ",y=" + mag[1] + ",y=" + mag[2]);
+                        +  "磁场：" + "x=" + mag[0] + ",y=" + mag[1] + ",y=" + mag[2];
+                //更新显示在屏幕上的信息
+                t1.setText(values);
                 //写到文件中
                 try {
-                    fos.write((((string + "\n"
-                            + "加速度：" + "x=" + acc[0] + ",y=" + acc[1] + ",z=" + acc[2] + "\n"
-                            + "陀螺仪：" + "x=" + angle[0] + ",y=" + angle[1] + ",y=" + angle[2] + "\n"
-                            +  "磁场：" + "x=" + mag[0] + ",y=" + mag[1] + ",y=" + mag[2])).getBytes()));
+                    byte[] bytes = values.getBytes();
+                    //将字符数组，写入到文件中
+                    fos.write(bytes);
+//                    fosLocal.write(bytes);
                     byte []newLine="\r\n".getBytes();
                     fos.write(newLine);
+//                    fosLocal.write(newLine);
                     fos.flush();
+//                    fosLocal.flush();
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
 
-                System.out.println("写入成功！");
+                System.out.println("更新信息成功！");
 
             }
         });
@@ -157,7 +160,9 @@ public class MainActivity extends Activity implements SensorEventListener{
         }
     }
 
-    //开始键触发事件
+    /**
+     * todo: 点击开始按钮，触发获取手机加速度等数据
+     */
     class StartClassListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
@@ -175,7 +180,9 @@ public class MainActivity extends Activity implements SensorEventListener{
             updateTime.scheduleAtFixedRate(tt, 0, 10);
 
             try {
+                //使用字符流将数据写入缓冲区
                 fos = new FileOutputStream(fi.getAbsolutePath(),true);
+//                fosLocal = new FileOutputStream(fidir.getAbsolutePath(), true);
             } catch (FileNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -185,7 +192,10 @@ public class MainActivity extends Activity implements SensorEventListener{
         }
 
     }
-    //储存键触发事件
+
+    /**
+     * todo: 点击触发存储事件， 开始存储数据
+     */
     class EnsureClassListener implements View.OnClickListener {
 
         @Override
@@ -226,16 +236,22 @@ public class MainActivity extends Activity implements SensorEventListener{
         }
 
     }
-    //结束键触发事件
+
+    /**
+     * todo: 点击结束按钮，结束获取手机中的各项数据
+     */
     class EndClassListener implements View.OnClickListener {
         @Override
         public void onClick(View arg0) {
             // TODO Auto-generated method stub
             try {
                 fos.write((mycalendar.getTime().toString()).getBytes());
+//                fosLocal.write(mycalendar.getTime().toString().getBytes()); //将数据添加到字符流中
                 byte []newLine="\r\n".getBytes();
                 fos.write(newLine);
+//                fosLocal.write(newLine); // 将数据写入缓存中
                 fos.close();
+//                fosLocal.close(); //关闭字符流
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
