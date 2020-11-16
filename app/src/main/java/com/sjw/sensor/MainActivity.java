@@ -95,7 +95,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
          */
         //显示地图
         mapView = (MapView) findViewById(R.id.map);
-        //必须要写
+        //必须要写，2D界面，暂时不需要
 //        mapView.onCreate(savedInstanceState);
         //获取地图对象
         aMap = mapView.getMap();
@@ -302,6 +302,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         mLocationOption.setNeedAddress(true);
         //设置是否只定位一次,默认为false
         mLocationOption.setOnceLocation(false);
+        //获取最近3s内精度最高的一次定位结果：必须开，否则无法更新位置信息
+        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+        mLocationOption.setOnceLocationLatest(true);
         //设置是否强制刷新WIFI，默认为强制刷新
         mLocationOption.setWifiActiveScan(true);
         //设置是否允许模拟位置,默认为false，不允许模拟位置
