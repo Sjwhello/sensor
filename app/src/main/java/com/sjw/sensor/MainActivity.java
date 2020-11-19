@@ -1,8 +1,10 @@
 package com.sjw.sensor;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,13 +16,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps2d.*;
 import com.amap.api.maps2d.model.BitmapDescriptorFactory;
-import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.MyLocationStyle;
 
 import java.io.File;
@@ -67,12 +69,56 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private AMapLocationClientOption mLocationOption = null;//定位参数
     private OnLocationChangedListener mListener = null;//定位监听器
 
+    //获取存储权限
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.WRITE_EXTERNAL_STORAGE"};
 
+    /**
+     * todo: 申请打开手机存储权限
+     *
+     * @param activity
+     */
+    public static void verifyStoragePermissions(Activity activity) {
+
+        try {
+            //检测是否有写的权限
+            int permission = ActivityCompat.checkSelfPermission(activity,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                // 没有写的权限，去申请写的权限，会弹出对话框
+                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * todo:
+     *
+     * @param activity
+     */
+    public static void verifyLocationPermissions(Activity activity) {
+        try {
+            //检查是否有定位权限
+            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION);
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                //没有权限，去申请定位权限，会弹出对话框
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_EXTERNAL_STORAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //获取手机定位权限
+        verifyLocationPermissions(this);
 
         //加速度
         sm = (SensorManager) this.getSystemService(SENSOR_SERVICE);
@@ -96,7 +142,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         //显示地图
         mapView = (MapView) findViewById(R.id.map);
         //必须要写，2D界面，暂时不需要
-//        mapView.onCreate(savedInstanceState);
+        //mapView.onCreate(savedInstanceState);
         //获取地图对象
         aMap = mapView.getMap();
 
@@ -144,8 +190,8 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
                 Date curDate = new Date(System.currentTimeMillis());//获取当前时间
                 String string = formatter.format(curDate);
-                String values = string + "\n\n" + "x,y,z三个方向的加速度：\n" + "x=" + acc[0] + ",y=" + acc[1] + ",z=" + acc[2] + "\n"
-                        + buffer;
+                String values = string + "\n" + "加速度：" + "x=" + acc[0] + ",y=" + acc[1] + ",z=" + acc[2] + "\n"
+                        + "位置：" + buffer + "\n";
                 //更新显示在屏幕上的信息
                 t1.setText(values);
                 //写到文件中
@@ -226,13 +272,15 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
         @Override
         public void onClick(View v) {
+            //获取手机存储权限
+            verifyStoragePermissions(MainActivity.this);
             // TODO Auto-generated method stub
             //接受客户端传来的文件名
             String etacc = et1.getText().toString();
             //判断文件名是否为空，为空则不符合要求，提示用户输入不合法
             if (!etacc.equals("")) {
                 String filestr = "";
-                filestr += "/sdcard/" + et1.getText().toString();
+                filestr += "/sdcard/Android/" + et1.getText().toString();
                 if (!filestr.contains(".")) {
                     filestr += ".txt";
                     fi = new File(filestr);
@@ -288,7 +336,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
 // -----------------------获取定位信息--------------------------------------地图相关的方法
 
-    //定位
+    /**
+     * todo: 开启定位的一些配置信息
+     */
     private void initLoc() {
         //初始化定位
         mLocationClient = new AMapLocationClient(getApplicationContext());
@@ -317,29 +367,36 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         mLocationClient.startLocation();
     }
 
+    /**
+     * todo： 回调位置信息
+     *
+     * @param amapLocation
+     */
     @Override
     public void onLocationChanged(AMapLocation amapLocation) {
         if (amapLocation != null) {
             if (amapLocation.getErrorCode() == 0) {
                 //定位成功回调信息，设置相关消息
-//                amapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见官方定位类型表
-//                amapLocation.getLatitude();//获取纬度
-//                amapLocation.getLongitude();//获取经度
-//                amapLocation.getAccuracy();//获取精度信息
-//                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//                Date date = new Date(amapLocation.getTime());
-//                df.format(date);//定位时间
-//                amapLocation.getAddress();//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
-//                amapLocation.getCountry();//国家信息
-//                amapLocation.getProvince();//省信息
-//                amapLocation.getCity();//城市信息
-//                amapLocation.getDistrict();//城区信息
-//                amapLocation.getStreet();//街道信息
-//                amapLocation.getStreetNum();//街道门牌号信息
-//                amapLocation.getCityCode();//城市编码
-//                amapLocation.getAdCode();//地区编码
+                /*回调可以获取的信息如下：
+                amapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见官方定位类型表
+                amapLocation.getLatitude();//获取纬度
+                amapLocation.getLongitude();//获取经度
+                amapLocation.getAccuracy();//获取精度信息
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Date date = new Date(amapLocation.getTime());
+                df.format(date);//定位时间
+                amapLocation.getAddress();//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
+                amapLocation.getCountry();//国家信息
+                amapLocation.getProvince();//省信息
+                amapLocation.getCity();//城市信息
+                amapLocation.getDistrict();//城区信息
+                amapLocation.getStreet();//街道信息
+                amapLocation.getStreetNum();//街道门牌号信息
+                amapLocation.getCityCode();//城市编码
+                amapLocation.getAdCode();//地区编码*/
                 buffer = amapLocation.getCountry() + "" + amapLocation.getProvince() + "" + amapLocation.getCity() + "" + amapLocation.getProvince() + "" + amapLocation.getDistrict() + "" + amapLocation.getStreet() + "" + amapLocation.getStreetNum();
-                Toast.makeText(getApplicationContext(), buffer, Toast.LENGTH_SHORT).show();
+                //弹窗显示
+                //Toast.makeText(getApplicationContext(), buffer, Toast.LENGTH_SHORT).show();
 
             } else {
                 //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。
@@ -351,25 +408,37 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
             }
         }
     }
+
+    /**
+     * todo: 激活监听器
+     *
+     * @param listener
+     */
     @Override
     public void activate(OnLocationChangedListener listener) {
         mListener = listener;
     }
 
+    /**
+     * todo: 销毁监听器
+     */
     @Override
     public void deactivate() {
         mListener = null;
     }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
     }
+
     @Override
     protected void onPause() {
         super.onPause();

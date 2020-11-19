@@ -36,7 +36,7 @@
         <!--设置key-->
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="989f5b6529a30ed36a430caea91c817f" />
+            android:value="4bfe84dbe932603dd9a23b006afcbba8" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,14 +44,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-<!--        <activity-->
-<!--            android:name=".MapActivity"-->
-<!--            android:label="@string/app_name" >-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.VIEW" />-->
-<!--                <category android:name="android.intent.category.DEFAULT" />-->
-<!--            </intent-filter>-->
-<!--        </activity>-->
     </application>
 
 </manifest>
