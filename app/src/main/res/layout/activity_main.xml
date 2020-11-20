@@ -16,14 +16,28 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:layout_editor_absoluteY="42dp">
 
-        <TextView
-            android:id="@+id/t1"
+        <!-- z轴加速度可视化 -->
+        <LinearLayout
+            android:id="@+id/linearlayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0.20"
-            android:baselineAligned="false"
-            android:text="详细列表"
-            android:textSize="18dp" />
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="0dp">
+
+            <LinearLayout
+                android:id="@+id/linearlayout1"
+                android:layout_width="wrap_content"
+                android:layout_height="200dp"
+                android:orientation="vertical"></LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linearlayout2"
+                android:layout_width="wrap_content"
+                android:layout_height="200dp"
+                android:orientation="vertical"></LinearLayout>
+        </LinearLayout>
+
 
         <EditText
             android:id="@+id/et1"
@@ -59,31 +73,19 @@
                 android:id="@+id/Ensure"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="30dp"
+                android:layout_marginBottom="10dp"
                 android:layout_weight="0.33"
                 android:text="储存" />
 
         </LinearLayout>
-
-        <!-- 加速度可视化 -->
-        <LinearLayout
-            android:id="@+id/linearlayout"
+        <TextView
+            android:id="@+id/t1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:id="@+id/linearlayout1"
-                android:layout_width="wrap_content"
-                android:layout_height="250dp"
-                android:orientation="vertical"></LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/linearlayout2"
-                android:layout_width="wrap_content"
-                android:layout_height="200dp"
-                android:orientation="vertical"></LinearLayout>
-        </LinearLayout>
+            android:layout_weight="0.05"
+            android:baselineAligned="false"
+            android:text="详细列表"
+            android:textSize="18dp" />
 
         <com.amap.api.maps2d.MapView
             android:id="@+id/map"

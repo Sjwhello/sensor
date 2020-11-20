@@ -120,7 +120,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     //*****************有关图表的属性和方法********************************
     int constNum = 100;
-    private GraphicalView chart;
+    private GraphicalView chartZ;
     private float addY = -1;
     private long addX;
     private TimeSeries series;
@@ -128,17 +128,18 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private Handler handler;
     Date[] xcache = new Date[constNum];
     float[] ycache = new float[constNum];
-    private void updateChart() {
+
+    //更新z轴加速度
+    private void updateChart(int num) {
         //设定长度为20
         int length = series.getItemCount();
-        if(length>=constNum) length = constNum;
-        addY=(float)acc[2]; //获取z方向上的加速度值，并赋值给坐标轴的y轴
-//        addX=new Date().getTime();
-        addX=System.currentTimeMillis();
+        if (length >= constNum) length = constNum;
+        addY = (float) acc[2]; //获取z方向上的加速度值，并赋值给坐标轴的y轴
+        addX = System.currentTimeMillis();
 
         //将前面的点放入缓存
         for (int i = 0; i < length; i++) {
-            xcache[i] =  new Date((long)series.getX(i));
+            xcache[i] = new Date((long) series.getX(i));
             ycache[i] = (float) series.getY(i);
         }
 
@@ -152,8 +153,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         dataset.removeSeries(series);
         dataset.addSeries(series);
         //曲线更新
-        chart.invalidate();
+        chartZ.invalidate();
+//        chartX.invalidate();
     }
+
     private XYMultipleSeriesRenderer getDemoRenderer() {
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         renderer.setChartTitle("z方向加速度变化图");//标题
@@ -166,9 +169,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         renderer.setLabelsColor(Color.BLACK);
         renderer.setLegendTextSize(15);    //曲线说明
         renderer.setXLabelsColor(Color.BLACK);
-        renderer.setYLabelsColor(0,Color.BLACK);
+        renderer.setYLabelsColor(0, Color.BLACK);
         renderer.setShowLegend(false);
-        renderer.setMargins(new int[] {5, 30, 15, 2});//上左下右{ 20, 30, 100, 0 })
+        renderer.setMargins(new int[]{5, 30, 15, 2});//上左下右{ 20, 30, 100, 0 })
         XYSeriesRenderer r = new XYSeriesRenderer();
         r.setColor(Color.RED);
         r.setChartValuesTextSize(15);
@@ -179,22 +182,21 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         r.setFillPoints(true);
         renderer.addSeriesRenderer(r);
         renderer.setMarginsColor(Color.WHITE);
-        renderer.setPanEnabled(false,false);
+        renderer.setPanEnabled(false, false);
         renderer.setShowGrid(true);
         renderer.setYAxisMax(25);//纵坐标最大值
-        renderer.setYAxisMin(-20);//纵坐标最小值
+        renderer.setYAxisMin(-15);//纵坐标最小值
         renderer.setInScroll(true);
         return renderer;
     }
+
     private XYMultipleSeriesDataset getDateDemoDataset() {//初始化的数据
         dataset = new XYMultipleSeriesDataset();
-        final int nr = 2;
-//        long value = new Date().getTime();
+        final int nr = 10;
         long value = System.currentTimeMillis();
-//        Random r = new Random();r.nextInt() % 2
-        series = new TimeSeries("Demo series " +  1);
+        series = new TimeSeries("Demo series " + 1);
         for (int k = 0; k < nr; k++) {
-            series.add(new Date(value+k*100),  2);//初值Y轴以0为中心，X轴初值范围再次定义
+            series.add(new Date(value + k * 100), 1);//初值Y轴以0为中心，X轴初值范围再次定义
         }
         dataset.addSeries(series);
         return dataset;
@@ -206,10 +208,11 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //获取图表窗口
-        LinearLayout layout1 = (LinearLayout)findViewById(R.id.linearlayout1);
-        //生成图表
-        chart = ChartFactory.getTimeChartView(this, getDateDemoDataset(), getDemoRenderer(), "mm:ss:SSS");
-        layout1.addView(chart, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,380));
+        LinearLayout layout1 = (LinearLayout) findViewById(R.id.linearlayout1);
+        //生成z，x方向的图表
+        chartZ = ChartFactory.getTimeChartView(this, getDateDemoDataset(), getDemoRenderer(), "mm:ss:SSS");
+        layout1.addView(chartZ, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 380));
+
 
         //获取手机定位权限
         verifyLocationPermissions(this);
@@ -338,7 +341,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 @Override
                 public void handleMessage(Message msg) {
                     //刷新图表
-                    updateChart();
+                    updateChart(0);
                     super.handleMessage(msg);
                 }
             };
@@ -550,7 +553,5 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         super.onPause();
         //暂停地图定位
         mapView.onPause();
-        //销毁时间
-        tt.cancel();
     }
 }

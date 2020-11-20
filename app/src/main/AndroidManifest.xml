@@ -29,15 +29,19 @@
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS"></uses-permission>
 
 
+    <!--android:requestLegacyExternalStorage = "true" 解决Android 10创建文件失败问题-->
     <application android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/AppTheme">
+        android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:requestLegacyExternalStorage = "true">
         <!--生命定位service-->
         <service android:name="com.amap.api.location.APSService"></service>
         <!--设置key-->
-        <!--4bfe84dbe932603dd9a23b006afcbba8-->
+        <!--4bfe84dbe932603dd9a23b006afcbba8 打包apk用-->
+        <!--989f5b6529a30ed36a430caea91c817f-->
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="989f5b6529a30ed36a430caea91c817f" />
+            android:value="4bfe84dbe932603dd9a23b006afcbba8" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
