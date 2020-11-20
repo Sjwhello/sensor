@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -64,6 +63,26 @@
                 android:layout_weight="0.33"
                 android:text="储存" />
 
+        </LinearLayout>
+
+        <!-- 加速度可视化 -->
+        <LinearLayout
+            android:id="@+id/linearlayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/linearlayout1"
+                android:layout_width="wrap_content"
+                android:layout_height="250dp"
+                android:orientation="vertical"></LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linearlayout2"
+                android:layout_width="wrap_content"
+                android:layout_height="200dp"
+                android:orientation="vertical"></LinearLayout>
         </LinearLayout>
 
         <com.amap.api.maps2d.MapView

@@ -5,17 +5,18 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.ViewGroup;
+import android.widget.*;
 import androidx.core.app.ActivityCompat;
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
@@ -24,19 +25,23 @@ import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps2d.*;
 import com.amap.api.maps2d.model.BitmapDescriptorFactory;
 import com.amap.api.maps2d.model.MyLocationStyle;
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.chart.PointStyle;
+import org.achartengine.model.TimeSeries;
+import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
+import org.achartengine.renderer.XYSeriesRenderer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class MainActivity extends Activity implements SensorEventListener, LocationSource, AMapLocationListener {
-    //加速度
+    //加速度相关属性
     private EditText et1;
     private TextView t1;
     private Button btn_start, btn_end, btn_ensure;
@@ -49,7 +54,6 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private Timer updateTime;
     private TimerTask tt = null;
     private String buffer = null;
-
 
     //传感器管理器
     private SensorManager sensorManager;
@@ -96,7 +100,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     }
 
     /**
-     * todo:
+     * todo: 申请打开手机定位权限
      *
      * @param activity
      */
@@ -112,11 +116,101 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
             e.printStackTrace();
         }
     }
+    //**************************************************************
+
+    //*****************有关图表的属性和方法********************************
+    int constNum = 100;
+    private GraphicalView chart;
+    private float addY = -1;
+    private long addX;
+    private TimeSeries series;
+    private XYMultipleSeriesDataset dataset;
+    private Handler handler;
+    Date[] xcache = new Date[constNum];
+    float[] ycache = new float[constNum];
+    private void updateChart() {
+        //设定长度为20
+        int length = series.getItemCount();
+        if(length>=constNum) length = constNum;
+        addY=(float)acc[2]; //获取z方向上的加速度值，并赋值给坐标轴的y轴
+//        addX=new Date().getTime();
+        addX=System.currentTimeMillis();
+
+        //将前面的点放入缓存
+        for (int i = 0; i < length; i++) {
+            xcache[i] =  new Date((long)series.getX(i));
+            ycache[i] = (float) series.getY(i);
+        }
+
+        series.clear();
+        //将新产生的点首先加入到点集中，然后在循环体中将坐标变换后的一系列点都重新加入到点集中
+        series.add(new Date(addX), addY);
+        for (int k = 0; k < length; k++) {
+            series.add(xcache[k], ycache[k]);
+        }
+        //在数据集中添加新的点集
+        dataset.removeSeries(series);
+        dataset.addSeries(series);
+        //曲线更新
+        chart.invalidate();
+    }
+    private XYMultipleSeriesRenderer getDemoRenderer() {
+        XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
+        renderer.setChartTitle("z方向加速度变化图");//标题
+        renderer.setChartTitleTextSize(20);
+        renderer.setXTitle("时间");    //x轴说明
+        renderer.setYTitle("z方向加速度");
+        renderer.setAxisTitleTextSize(16);
+        renderer.setAxesColor(Color.BLACK);
+        renderer.setLabelsTextSize(15);    //数轴刻度字体大小
+        renderer.setLabelsColor(Color.BLACK);
+        renderer.setLegendTextSize(15);    //曲线说明
+        renderer.setXLabelsColor(Color.BLACK);
+        renderer.setYLabelsColor(0,Color.BLACK);
+        renderer.setShowLegend(false);
+        renderer.setMargins(new int[] {5, 30, 15, 2});//上左下右{ 20, 30, 100, 0 })
+        XYSeriesRenderer r = new XYSeriesRenderer();
+        r.setColor(Color.RED);
+        r.setChartValuesTextSize(15);
+        r.setChartValuesSpacing(3);
+        r.setPointStyle(PointStyle.POINT);
+        r.setFillBelowLine(true);
+        r.setFillBelowLineColor(Color.WHITE);
+        r.setFillPoints(true);
+        renderer.addSeriesRenderer(r);
+        renderer.setMarginsColor(Color.WHITE);
+        renderer.setPanEnabled(false,false);
+        renderer.setShowGrid(true);
+        renderer.setYAxisMax(25);//纵坐标最大值
+        renderer.setYAxisMin(-20);//纵坐标最小值
+        renderer.setInScroll(true);
+        return renderer;
+    }
+    private XYMultipleSeriesDataset getDateDemoDataset() {//初始化的数据
+        dataset = new XYMultipleSeriesDataset();
+        final int nr = 2;
+//        long value = new Date().getTime();
+        long value = System.currentTimeMillis();
+//        Random r = new Random();r.nextInt() % 2
+        series = new TimeSeries("Demo series " +  1);
+        for (int k = 0; k < nr; k++) {
+            series.add(new Date(value+k*100),  2);//初值Y轴以0为中心，X轴初值范围再次定义
+        }
+        dataset.addSeries(series);
+        return dataset;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //获取图表窗口
+        LinearLayout layout1 = (LinearLayout)findViewById(R.id.linearlayout1);
+        //生成图表
+        chart = ChartFactory.getTimeChartView(this, getDateDemoDataset(), getDemoRenderer(), "mm:ss:SSS");
+        layout1.addView(chart, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,380));
+
         //获取手机定位权限
         verifyLocationPermissions(this);
 
@@ -157,7 +251,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         aMap.setMyLocationEnabled(true);
 
 
-        //定位的小图标 默认是蓝点 这里自定义一团火，其实就是一张图片
+        //定位的小图标 默认是蓝点
         MyLocationStyle myLocationStyle = new MyLocationStyle();
         myLocationStyle.myLocationIcon(BitmapDescriptorFactory.fromResource(R.id.accelerate));
         myLocationStyle.radiusFillColor(android.R.color.transparent);
@@ -240,12 +334,23 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     class StartClassListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
+            handler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    //刷新图表
+                    updateChart();
+                    super.handleMessage(msg);
+                }
+            };
             // TODO Auto-generated method stub
             updateTime = new Timer("Acc");
 
             tt = new TimerTask() {
                 @Override
                 public void run() {
+                    Message message = new Message();
+                    message.what = 200;
+                    handler.sendMessage(message);
                     // TODO Auto-generated method stub
                     updateGUI();
                 }
@@ -437,11 +542,15 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        //暂停地图定位
         mapView.onPause();
+        //销毁时间
+        tt.cancel();
     }
 }
