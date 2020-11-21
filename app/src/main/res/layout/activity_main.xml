@@ -31,11 +31,6 @@
                 android:layout_height="200dp"
                 android:orientation="vertical"></LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/linearlayout2"
-                android:layout_width="wrap_content"
-                android:layout_height="200dp"
-                android:orientation="vertical"></LinearLayout>
         </LinearLayout>
 
 
