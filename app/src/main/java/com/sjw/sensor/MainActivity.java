@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
@@ -54,68 +55,19 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private Timer updateTime;
     private TimerTask tt = null;
     private String buffer = null;
-
     //传感器管理器
     private SensorManager sensorManager;
     //加速度传感器
     private Sensor accelerometerSensor;
 
 
-    /**
-     * 地图相关的配置
-     */
-    //显示地图需要的变量
+    //显示地图需要的变量 地图相关的配置**************************************
     private MapView mapView;//地图控件
     private AMap aMap;//地图对象
-
     //定位需要的声明
     private AMapLocationClient mLocationClient = null;//定位发起端
     private AMapLocationClientOption mLocationOption = null;//定位参数
     private OnLocationChangedListener mListener = null;//定位监听器
-
-    //获取存储权限
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private static String[] PERMISSIONS_STORAGE = {
-            "android.permission.READ_EXTERNAL_STORAGE",
-            "android.permission.WRITE_EXTERNAL_STORAGE"};
-
-    /**
-     * todo: 申请打开手机存储权限
-     *
-     * @param activity
-     */
-    public static void verifyStoragePermissions(Activity activity) {
-
-        try {
-            //检测是否有写的权限
-            int permission = ActivityCompat.checkSelfPermission(activity,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                // 没有写的权限，去申请写的权限，会弹出对话框
-                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * todo: 申请打开手机定位权限
-     *
-     * @param activity
-     */
-    public static void verifyLocationPermissions(Activity activity) {
-        try {
-            //检查是否有定位权限
-            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION);
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                //没有权限，去申请定位权限，会弹出对话框
-                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_EXTERNAL_STORAGE);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
     //**************************************************************
 
     //*****************有关图表的属性和方法********************************
@@ -136,16 +88,16 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     float[] ycacheX = new float[constNum];
     float[] ycacheY = new float[constNum];
     float[] ycacheZ = new float[constNum];
-    private String title[] = {"Y方向加速度","X方向加速度","Z方向加速度"};
+    private String title[] = {"Y方向加速度", "X方向加速度", "Z方向加速度"};
 
     //更新z轴加速度
     private void updateChart() {
         //设定长度为20
         int length = series.getItemCount();
         if (length >= constNum) length = constNum;
-        addXX = (float)acc[0];
-        addY = (float) (acc[1]+16); //获取z方向上的加速度值，并赋值给坐标轴的y轴
-        addZZ = (float) (acc[2]-28);
+        addXX = (float) acc[0];
+        addY = (float) (acc[1] + 16); //获取z方向上的加速度值，并赋值给坐标轴的y轴
+        addZZ = (float) (acc[2] - 28);
         addX = System.currentTimeMillis();
 
         //将前面的点放入缓存
@@ -252,25 +204,16 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         chart = ChartFactory.getTimeChartView(this, getDateDemoDataset(), getDemoRenderer(), "mm:ss:SSS");
         layout1.addView(chart, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 380));
 
+        //获取手机权限
+        requestPermissions(new String[]{
+                Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        }, 0x123);
 
-        //获取手机定位权限
-        verifyLocationPermissions(this);
-
-        //加速度
-        sm = (SensorManager) this.getSystemService(SENSOR_SERVICE);
-        sensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
-        btn_start = (Button) findViewById(R.id.Start);
-        btn_end = (Button) findViewById(R.id.End);
-        btn_ensure = (Button) findViewById(R.id.Ensure);
-        et1 = (EditText) findViewById(R.id.et1);
-        t1 = (TextView) findViewById(R.id.t1);
-        btn_start.setOnClickListener(new StartClassListener());
-        btn_start.setVisibility(View.INVISIBLE);
-        btn_end.setOnClickListener(new EndClassListener());
-        btn_end.setVisibility(View.INVISIBLE);
-        btn_ensure.setOnClickListener(new EnsureClassListener());
-        mycalendar = Calendar.getInstance();
+        //初始化加速度相关的变量
+        initAcc();
 
         /**
          * 地图相关的配置
@@ -313,6 +256,42 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         //SensorManager.SENSOR_DELAY_NORMAL(200000微秒):普通。标准延时，对于一般的益智类或EASY级别的游戏可以使用，但过低的采样率可能对一些赛车类游戏有跳帧现象
         //SensorManager.SENSOR_DELAY_UI(60000微秒):用户界面。一般对于屏幕方向自动旋转使用，相对节省电能和逻辑处理，一般游戏开发中不使用
         sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME);//注册加速度传感器
+    }
+
+    /**
+     * todo: 获取需要用到的手机权限
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 0x123 && grantResults.length == 4
+                && grantResults[0] == PackageManager.PERMISSION_DENIED
+                && grantResults[1] == PackageManager.PERMISSION_DENIED
+                && grantResults[2] == PackageManager.PERMISSION_DENIED
+                && grantResults[2] == PackageManager.PERMISSION_DENIED) {
+            System.out.println("权限的长度："+permissions.length+",grant:"+grantResults.length);
+        }
+    }
+
+    /**
+     * 初始化加速度相关的变量
+     */
+    public void initAcc(){
+        //加速度
+        sm = (SensorManager) this.getSystemService(SENSOR_SERVICE);
+        sensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        btn_start = (Button) findViewById(R.id.Start);
+        btn_end = (Button) findViewById(R.id.End);
+        btn_ensure = (Button) findViewById(R.id.Ensure);
+        et1 = (EditText) findViewById(R.id.et1);
+        t1 = (TextView) findViewById(R.id.t1);
+        btn_start.setOnClickListener(new StartClassListener());
+        btn_start.setVisibility(View.INVISIBLE);
+        btn_end.setOnClickListener(new EndClassListener());
+        btn_end.setVisibility(View.INVISIBLE);
+        btn_ensure.setOnClickListener(new EnsureClassListener());
+        mycalendar = Calendar.getInstance();
     }
 
     /**
@@ -419,8 +398,6 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
         @Override
         public void onClick(View v) {
-            //获取手机存储权限
-            verifyStoragePermissions(MainActivity.this);
             // TODO Auto-generated method stub
             //接受客户端传来的文件名
             String etacc = et1.getText().toString();
@@ -482,7 +459,6 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     }
 
 // -----------------------获取定位信息--------------------------------------地图相关的方法
-
     /**
      * todo: 开启定位的一些配置信息
      */
