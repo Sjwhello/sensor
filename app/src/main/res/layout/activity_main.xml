@@ -14,9 +14,10 @@
         android:orientation="vertical"
         android:weightSum="1"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="42dp">
+        tools:layout_editor_absoluteY="42dp"
+        android:gravity="right">
 
-        <!-- z轴加速度可视化 -->
+        <!-- 三轴加速度可视化 -->
         <LinearLayout
             android:id="@+id/linearlayout"
             android:layout_width="match_parent"
@@ -74,18 +75,23 @@
 
         </LinearLayout>
         <TextView
-            android:id="@+id/t1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.05"
-            android:baselineAligned="false"
-            android:text="详细列表"
-            android:textSize="18dp" />
+                android:id="@+id/t1"
+                android:layout_width="match_parent"
+                android:layout_height="108dp"
+                android:layout_weight="0.05"
+                android:baselineAligned="false"
+                android:text="详细列表"
+                android:textSize="18dp"/>
 
         <com.amap.api.maps2d.MapView
-            android:id="@+id/map"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+                android:id="@+id/map"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        <SurfaceView
+                android:id="@+id/sView"
+                android:layout_width="200dp"
+                android:layout_height="150dp"
+                android:layout_marginRight="10dp"/>
 
     </LinearLayout>
 
