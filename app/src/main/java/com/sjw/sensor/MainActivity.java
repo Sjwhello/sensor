@@ -137,7 +137,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         //显示地图
         mapView = (MapView) findViewById(R.id.map);
         //必须要写，2D界面，暂时不需要
-        //mapView.onCreate(savedInstanceState);
+        mapView.onCreate(savedInstanceState);
         //获取地图对象
         aMap = mapView.getMap();
 
@@ -154,10 +154,17 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
         //定位的小图标 默认是蓝点
         MyLocationStyle myLocationStyle = new MyLocationStyle();
-        myLocationStyle.myLocationIcon(BitmapDescriptorFactory.fromResource(R.id.accelerate));
-        myLocationStyle.radiusFillColor(android.R.color.transparent);
-        myLocationStyle.strokeColor(android.R.color.transparent);
-        aMap.setMyLocationStyle(myLocationStyle);
+        myLocationStyle.showMyLocation(true);
+        myLocationStyle.strokeColor(Color.BLUE);
+//        myLocationStyle.myLocationIcon(BitmapDescriptorFactory.fromResource(R.id.accelerate));
+//        myLocationStyle.radiusFillColor(android.R.color.transparent);
+//        myLocationStyle.strokeColor(android.R.color.transparent);
+//        aMap.setMyLocationStyle(myLocationStyle);
+        myLocationStyle.interval(2000); //设置连续定位模式下的定位间隔，只在连续定位模式下生效，单次定位模式下不会生效。单位为毫秒。
+        aMap.setMyLocationStyle(myLocationStyle);//设置定位蓝点的Style
+        //aMap.getUiSettings().setMyLocationButtonEnabled(true);设置默认定位按钮是否显示，非必需设置。
+        aMap.setMyLocationEnabled(true);// 设置为true表示启动显示定位蓝点，false表示隐藏定位蓝点并不进行定位，默认是false。
+        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);//连续定位、且将视角移动到地图中心点，地图依照设备方向旋转，定位点会跟随设备移动。（1秒1次定位）
 
         //开始定位
         initLoc();
@@ -186,7 +193,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         btn_end = (Button) findViewById(R.id.End);
         btn_ensure = (Button) findViewById(R.id.Ensure);
         et1 = (EditText) findViewById(R.id.et1);
-        t1 = (TextView) findViewById(R.id.t1);
+//        t1 = (TextView) findViewById(R.id.t1);
         btn_start.setOnClickListener(new StartClassListener());
         btn_start.setVisibility(View.INVISIBLE);
         btn_end.setOnClickListener(new EndClassListener());
@@ -224,7 +231,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 String values = string + "\n" + "加速度：" + "x=" + acc[0] + ",y=" + acc[1] + ",z=" + acc[2] + "\n"
                         + "位置：" + buffer + "\n";
                 //更新显示在屏幕上的信息
-                t1.setText(values);
+//                t1.setText(values);
                 //写到文件中
                 try {
                     byte[] bytes = values.getBytes();
@@ -429,7 +436,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 amapLocation.getStreetNum();//街道门牌号信息
                 amapLocation.getCityCode();//城市编码
                 amapLocation.getAdCode();//地区编码*/
-                buffer = amapLocation.getCountry() + "" + amapLocation.getProvince() + "" + amapLocation.getCity() + "" + amapLocation.getProvince() + "" + amapLocation.getDistrict() + "" + amapLocation.getStreet() + "" + amapLocation.getStreetNum();
+                buffer = amapLocation.getCountry() + "" + amapLocation.getProvince() + "" + amapLocation.getCity() + "" + amapLocation.getProvince() + ""
+                        + amapLocation.getDistrict() + "" + amapLocation.getStreet() + "" + amapLocation.getStreetNum() + ",纬度:"
+                        + amapLocation.getLatitude() + "&经度:" + amapLocation.getLongitude();
                 //弹窗显示
                 //Toast.makeText(getApplicationContext(), buffer, Toast.LENGTH_SHORT).show();
 
