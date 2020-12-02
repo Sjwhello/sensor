@@ -9,7 +9,6 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.*;
-import android.hardware.camera2.CameraManager;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
@@ -21,13 +20,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps2d.*;
-import com.amap.api.maps2d.model.BitmapDescriptorFactory;
 import com.amap.api.maps2d.model.MyLocationStyle;
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -71,6 +68,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private AMapLocationClient mLocationClient = null;//定位发起端
     private AMapLocationClientOption mLocationOption = null;//定位参数
     private OnLocationChangedListener mListener = null;//定位监听器
+    AMapLocationClient mlocationClient = null;
 //**************************************************************
 
 //*******************设置录屏相关属性*******************************
@@ -155,7 +153,8 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
         //定位的小图标 默认是蓝点
         MyLocationStyle myLocationStyle = new MyLocationStyle();
-        myLocationStyle.interval(2000);
+        myLocationStyle.interval(1000);
+        myLocationStyle.radiusFillColor(0);
         myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);
         myLocationStyle.showMyLocation(true);
         aMap.setMyLocationStyle(myLocationStyle);
@@ -408,7 +407,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
      */
     @Override
     public void onLocationChanged(AMapLocation amapLocation) {
-        if (amapLocation != null) {
+        if (amapLocation != null&&mListener != null) {
             if (amapLocation.getErrorCode() == 0) {
                 //定位成功回调信息，设置相关消息
                 /*回调可以获取的信息如下：
@@ -433,6 +432,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                         + amapLocation.getLatitude() + "&经度:" + amapLocation.getLongitude();
                 //弹窗显示
                 //Toast.makeText(getApplicationContext(), buffer, Toast.LENGTH_SHORT).show();
+                mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
 
             } else {
                 //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。
@@ -453,6 +453,24 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     @Override
     public void activate(OnLocationChangedListener listener) {
         mListener = listener;
+        //定位客户端
+        if (mlocationClient == null) {
+            //初始化定位
+            mlocationClient = new AMapLocationClient(this);
+            //初始化定位参数
+            mLocationOption = new AMapLocationClientOption();
+            //设置定位回调监听
+            mlocationClient.setLocationListener(this);
+            //设置为高精度定位模式
+            mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+            //设置定位参数
+            mlocationClient.setLocationOption(mLocationOption);
+            // 此方法为每隔固定时间会发起一次定位请求，为了减少电量消耗或网络流量消耗，
+            // 注意设置合适的定位时间的间隔（最小间隔支持为2000ms），并且在合适时间调用stopLocation()方法来取消定位请求
+            // 在定位结束后，在合适的生命周期调用onDestroy()方法
+            // 在单次定位情况下，定位无论成功与否，都无需调用stopLocation()方法移除请求，定位sdk内部会移除
+            mlocationClient.startLocation();//启动定位
+        }
     }
 
     /**
@@ -461,6 +479,11 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     @Override
     public void deactivate() {
         mListener = null;
+        if (mlocationClient != null) {
+            mlocationClient.stopLocation();
+            mlocationClient.onDestroy();
+        }
+        mlocationClient = null;
     }
 
     @Override
@@ -473,7 +496,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
-
+        //销毁定位对象
+        if(null != mlocationClient){
+            mlocationClient.onDestroy();
+        }
     }
 
     @Override
