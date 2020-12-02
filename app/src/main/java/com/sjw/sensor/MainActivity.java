@@ -149,25 +149,18 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         // 是否显示定位按钮
         settings.setMyLocationButtonEnabled(true);
         // 是否可触发定位并显示定位层
-        aMap.setMyLocationEnabled(true);
-
-
-        //定位的小图标 默认是蓝点
-        MyLocationStyle myLocationStyle = new MyLocationStyle();
-        myLocationStyle.showMyLocation(true);
-        myLocationStyle.strokeColor(Color.BLUE);
-//        myLocationStyle.myLocationIcon(BitmapDescriptorFactory.fromResource(R.id.accelerate));
-//        myLocationStyle.radiusFillColor(android.R.color.transparent);
-//        myLocationStyle.strokeColor(android.R.color.transparent);
-//        aMap.setMyLocationStyle(myLocationStyle);
-        myLocationStyle.interval(2000); //设置连续定位模式下的定位间隔，只在连续定位模式下生效，单次定位模式下不会生效。单位为毫秒。
-        aMap.setMyLocationStyle(myLocationStyle);//设置定位蓝点的Style
-        //aMap.getUiSettings().setMyLocationButtonEnabled(true);设置默认定位按钮是否显示，非必需设置。
-        aMap.setMyLocationEnabled(true);// 设置为true表示启动显示定位蓝点，false表示隐藏定位蓝点并不进行定位，默认是false。
-        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);//连续定位、且将视角移动到地图中心点，地图依照设备方向旋转，定位点会跟随设备移动。（1秒1次定位）
 
         //开始定位
         initLoc();
+
+        //定位的小图标 默认是蓝点
+        MyLocationStyle myLocationStyle = new MyLocationStyle();
+        myLocationStyle.interval(2000);
+        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);
+        myLocationStyle.showMyLocation(true);
+        aMap.setMyLocationStyle(myLocationStyle);
+        aMap.setMyLocationEnabled(true);
+
 
         //获取加速度传感器
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -411,7 +404,6 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     /**
      * todo： 回调位置信息
-     *
      * @param amapLocation
      */
     @Override
