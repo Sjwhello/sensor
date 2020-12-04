@@ -25,7 +25,10 @@ import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps2d.*;
+import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.MyLocationStyle;
+import com.amap.api.maps2d.model.Polyline;
+import com.amap.api.maps2d.model.PolylineOptions;
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.PointStyle;
@@ -68,7 +71,13 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private AMapLocationClient mLocationClient = null;//定位发起端
     private AMapLocationClientOption mLocationOption = null;//定位参数
     private OnLocationChangedListener mListener = null;//定位监听器
-    AMapLocationClient mlocationClient = null;
+    private AMapLocationClient mlocationClient = null;
+    private List<LatLng> latLngs = null;
+    private Polyline polyline;
+    //以前的定位点
+    private LatLng oldLatLng;
+    //是否是第一次定位
+    private boolean isFirstLatLng;
 //**************************************************************
 
 //*******************设置录屏相关属性*******************************
@@ -80,6 +89,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     //是否在录制视频
     private Boolean isRecording;
     private Camera camera;
+    private String fileVideo;
 //***************************************************************
 
 //*****************有关图表的属性和方法********************************
@@ -123,41 +133,24 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 Manifest.permission.ACCESS_COARSE_LOCATION
         }, 0x123);
 
-        //初始化加速度相关的变量
-        initAcc();
-
         //初始化录像变量
         sView = (SurfaceView) findViewById(R.id.sView);
 
-        /**
-         * 地图相关的配置
-         */
-        //显示地图
-        mapView = (MapView) findViewById(R.id.map);
-        //必须要写，2D界面，暂时不需要
-        mapView.onCreate(savedInstanceState);
-        //获取地图对象
-        aMap = mapView.getMap();
-
-
-        //设置显示定位按钮 并且可以点击
-        UiSettings settings = aMap.getUiSettings();
-        //设置定位监听
-        aMap.setLocationSource(this);
-        // 是否显示定位按钮
-        settings.setMyLocationButtonEnabled(true);
-        // 是否可触发定位并显示定位层
+        //初始化加速度相关的变量
+        initAcc();
 
         //开始定位
-        initLoc();
+        initLoc(savedInstanceState);
 
         //定位的小图标 默认是蓝点
         MyLocationStyle myLocationStyle = new MyLocationStyle();
-        myLocationStyle.interval(1000);
+        myLocationStyle.interval(10);
         myLocationStyle.radiusFillColor(0);
         myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);
         myLocationStyle.showMyLocation(true);
         aMap.setMyLocationStyle(myLocationStyle);
+        aMap.setMyLocationType(AMap.MAP_TYPE_NORMAL);
+        // 是否可触发定位并显示定位层
         aMap.setMyLocationEnabled(true);
 
 
@@ -314,12 +307,17 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
             String etacc = et1.getText().toString();
             //判断文件名是否为空，为空则不符合要求，提示用户输入不合法
             if (!etacc.equals("")) {
-                String filestr = "";
-                filestr += "/sdcard/Android/" + et1.getText().toString();
-                if (!filestr.contains(".")) {
-                    filestr += ".txt";
-                    fi = new File(filestr);
-                    if (!fi.exists()) {
+                //获取当前时间
+                Date date = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String curr = sdf.format(date);
+                String filetext = "";
+                filetext += "/sdcard/Android/" + et1.getText().toString()+"-"+curr;
+                if (!filetext.contains(".")) {
+                    fileVideo = filetext;
+                    filetext += ".txt";
+                    fi = new File(filetext);
+                    if (!fi.exists()) {//创建数据文本文件
                         System.out.println("creating it now!");
                         try {
                             fi.createNewFile();
@@ -373,7 +371,23 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     /**
      * todo: 开启定位的一些配置信息
      */
-    private void initLoc() {
+    private void initLoc(Bundle savedInstanceState) {
+        //显示地图
+        mapView = (MapView) findViewById(R.id.map);
+        //必须要写，2D界面，暂时不需要
+        mapView.onCreate(savedInstanceState);
+        //获取地图对象
+        aMap = mapView.getMap();
+        //画线
+        // 缩放级别（zoom）：地图缩放级别范围为【4-20级】，值越大地图越详细
+        aMap.moveCamera(CameraUpdateFactory.zoomTo(16));
+
+        //设置显示定位按钮 并且可以点击
+        UiSettings settings = aMap.getUiSettings();
+        //设置定位监听
+        aMap.setLocationSource(this);
+        // 是否显示定位按钮
+        settings.setMyLocationButtonEnabled(true);
         //初始化定位
         mLocationClient = new AMapLocationClient(getApplicationContext());
         //设置定位回调监听
@@ -393,13 +407,24 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         mLocationOption.setWifiActiveScan(true);
         //设置是否允许模拟位置,默认为false，不允许模拟位置
         mLocationOption.setMockEnable(false);
-        //设置定位间隔,单位毫秒,默认为2000ms
-        mLocationOption.setInterval(2000);
+        //设置定位间隔,单位毫秒,默认为2000ms, 设置成1s更新一次
+        mLocationOption.setInterval(1000);
         //给定位客户端对象设置定位参数
         mLocationClient.setLocationOption(mLocationOption);
         //启动定位
         mLocationClient.startLocation();
     }
+
+    /**绘制两个坐标点之间的线段,从以前位置到现在位置*/
+    private void setUpMap(LatLng oldData,LatLng newData ) {
+
+        // 绘制一个大地曲线
+        aMap.addPolyline((new PolylineOptions())
+                .add(oldData, newData)
+                .geodesic(true).color(Color.GREEN));
+
+    }
+
 
     /**
      * todo： 回调位置信息
@@ -433,6 +458,21 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 //弹窗显示
                 //Toast.makeText(getApplicationContext(), buffer, Toast.LENGTH_SHORT).show();
                 mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
+                //定位成功
+                LatLng newLatLng = new LatLng(amapLocation.getLatitude(),amapLocation.getLongitude());
+
+                if(isFirstLatLng){
+                    //记录第一次的定位信息
+                    oldLatLng = newLatLng;
+                    isFirstLatLng = false;
+                }
+                //位置有变化
+                if(oldLatLng != newLatLng){
+                    Log.e("Amap", amapLocation.getLatitude() + "," + amapLocation.getLongitude());
+                    setUpMap( oldLatLng , newLatLng );
+                    oldLatLng = newLatLng;
+                }
+
 
             } else {
                 //显示错误信息ErrCode是错误码，errInfo是错误信息，详见错误码表。
@@ -638,12 +678,8 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         camera = Camera.open();
         camera.setDisplayOrientation(90);
         camera.unlock();
-        //将当前时间格式化为字符串，作为文件名
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String curr = sdf.format(date);
-        //新建文件
-        videoFile = new File("/sdcard/Android/"+curr+".mp4");
+        //新建视频文件
+        videoFile = new File(fileVideo + ".mp4");
         mRecorder = new MediaRecorder();
         mRecorder.reset();
         mRecorder.setCamera(camera);
