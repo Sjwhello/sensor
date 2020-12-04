@@ -24,11 +24,11 @@ import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
-import com.amap.api.maps2d.*;
-import com.amap.api.maps2d.model.LatLng;
-import com.amap.api.maps2d.model.MyLocationStyle;
-import com.amap.api.maps2d.model.Polyline;
-import com.amap.api.maps2d.model.PolylineOptions;
+import com.amap.api.maps.*;
+import com.amap.api.maps.model.LatLng;
+import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.maps.model.Polyline;
+import com.amap.api.maps.model.PolylineOptions;
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.PointStyle;
@@ -45,7 +45,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class MainActivity extends Activity implements SensorEventListener, LocationSource, AMapLocationListener {
-    //加速度相关属性
+//加速度相关属性******************************************************
     private EditText et1;
     private TextView t1;
     private Button btn_start, btn_end, btn_ensure;
@@ -62,7 +62,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private SensorManager sensorManager;
     //加速度传感器
     private Sensor accelerometerSensor;
-
+//****************************************************************
 
 //显示地图需要的变量 地图相关的配置**************************************
     private MapView mapView;//地图控件
@@ -72,8 +72,6 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private AMapLocationClientOption mLocationOption = null;//定位参数
     private OnLocationChangedListener mListener = null;//定位监听器
     private AMapLocationClient mlocationClient = null;
-    private List<LatLng> latLngs = null;
-    private Polyline polyline;
     //以前的定位点
     private LatLng oldLatLng;
     //是否是第一次定位
@@ -124,8 +122,6 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         chart = ChartFactory.getTimeChartView(this, getDateDemoDataset(), getDemoRenderer(), "mm:ss:SSS");
         layout1.addView(chart, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 380));
 
-        //获取手机权限
-        //Manifest.permission.RECORD_AUDIO,录音的权限
         requestPermissions(new String[]{
                 Manifest.permission.CAMERA,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -138,21 +134,8 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
         //初始化加速度相关的变量
         initAcc();
-
-        //开始定位
+        //开始定位,初始化定位相关变量
         initLoc(savedInstanceState);
-
-        //定位的小图标 默认是蓝点
-        MyLocationStyle myLocationStyle = new MyLocationStyle();
-        myLocationStyle.interval(10);
-        myLocationStyle.radiusFillColor(0);
-        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);
-        myLocationStyle.showMyLocation(true);
-        aMap.setMyLocationStyle(myLocationStyle);
-        aMap.setMyLocationType(AMap.MAP_TYPE_NORMAL);
-        // 是否可触发定位并显示定位层
-        aMap.setMyLocationEnabled(true);
-
 
         //获取加速度传感器
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -166,9 +149,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME);//注册加速度传感器
     }
 
-    /**
-     * 初始化加速度相关的变量
-     */
+    /**初始化加速度相关的变量*/
     public void initAcc(){
         //加速度
         sm = (SensorManager) this.getSystemService(SENSOR_SERVICE);
@@ -187,9 +168,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         mycalendar = Calendar.getInstance();
     }
 
-    /**
-     * todo: 获取需要用到的手机权限
-     */
+    /**获取需要用到的手机权限*/
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -202,9 +181,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         }
     }
 
-    /**
-     * todo: 更新手机屏幕显示信息，并将从手机获取的数据写入文件中
-     */
+    /**更新手机屏幕显示信息，并将从手机获取的数据写入文件中 */
     public void updateGUI() {
         runOnUiThread(new Runnable() {
             @Override
@@ -255,9 +232,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         }
     }
 
-    /**
-     * todo: 点击开始按钮，触发获取手机加速度等数据
-     */
+    /**点击开始按钮，触发获取手机加速度等数据*/
     class StartClassListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
@@ -296,9 +271,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     }
 
-    /**
-     * todo: 点击触发存储事件， 开始存储数据
-     */
+    /**点击触发存储事件， 开始存储数据*/
     class EnsureClassListener implements View.OnClickListener {
 
         @Override
@@ -343,9 +316,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     }
 
-    /**
-     * todo: 点击结束按钮，结束获取手机中的各项数据
-     */
+    /**点击结束按钮，结束获取手机中的各项数据*/
     class EndClassListener implements View.OnClickListener {
         @Override
         public void onClick(View arg0) {
@@ -368,9 +339,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     }
 
 // -----------------------获取定位信息--------------------------------------地图相关的方法
-    /**
-     * todo: 开启定位的一些配置信息
-     */
+    /**开启定位的一些配置信息*/
     private void initLoc(Bundle savedInstanceState) {
         //显示地图
         mapView = (MapView) findViewById(R.id.map);
@@ -382,37 +351,17 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         // 缩放级别（zoom）：地图缩放级别范围为【4-20级】，值越大地图越详细
         aMap.moveCamera(CameraUpdateFactory.zoomTo(16));
 
-        //设置显示定位按钮 并且可以点击
-        UiSettings settings = aMap.getUiSettings();
-        //设置定位监听
-        aMap.setLocationSource(this);
-        // 是否显示定位按钮
-        settings.setMyLocationButtonEnabled(true);
-        //初始化定位
-        mLocationClient = new AMapLocationClient(getApplicationContext());
-        //设置定位回调监听
-        mLocationClient.setLocationListener(this);
-        //初始化定位参数
-        mLocationOption = new AMapLocationClientOption();
-        //设置定位模式为高精度模式，Battery_Saving为低功耗模式，Device_Sensors是仅设备模式
-        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-        //设置是否返回地址信息（默认返回地址信息）
-        mLocationOption.setNeedAddress(true);
-        //设置是否只定位一次,默认为false
-        mLocationOption.setOnceLocation(false);
-        //获取最近3s内精度最高的一次定位结果：必须开，否则无法更新位置信息
-        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
-        mLocationOption.setOnceLocationLatest(true);
-        //设置是否强制刷新WIFI，默认为强制刷新
-        mLocationOption.setWifiActiveScan(true);
-        //设置是否允许模拟位置,默认为false，不允许模拟位置
-        mLocationOption.setMockEnable(false);
-        //设置定位间隔,单位毫秒,默认为2000ms, 设置成1s更新一次
-        mLocationOption.setInterval(1000);
-        //给定位客户端对象设置定位参数
-        mLocationClient.setLocationOption(mLocationOption);
-        //启动定位
-        mLocationClient.startLocation();
+        //定位的小图标 默认是蓝点
+        MyLocationStyle myLocationStyle = new MyLocationStyle();
+        myLocationStyle.interval(10);
+        myLocationStyle.radiusFillColor(0);
+        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE);
+        myLocationStyle.showMyLocation(true);
+        aMap.setMyLocationStyle(myLocationStyle);
+        aMap.setMapType(AMap.MAP_TYPE_NORMAL);
+        // 是否可触发定位并显示定位层
+        aMap.setMyLocationEnabled(true);
+
     }
 
     /**绘制两个坐标点之间的线段,从以前位置到现在位置*/
@@ -426,10 +375,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     }
 
 
-    /**
-     * todo： 回调位置信息
-     * @param amapLocation
-     */
+    /**回调位置信息*/
     @Override
     public void onLocationChanged(AMapLocation amapLocation) {
         if (amapLocation != null&&mListener != null) {
@@ -485,11 +431,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         }
     }
 
-    /**
-     * todo: 激活监听器
-     *
-     * @param listener
-     */
+    /**激活监听器*/
     @Override
     public void activate(OnLocationChangedListener listener) {
         mListener = listener;
@@ -501,21 +443,23 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
             mLocationOption = new AMapLocationClientOption();
             //设置定位回调监听
             mlocationClient.setLocationListener(this);
+            //设置是否返回地址信息（默认返回地址信息）
+            mLocationOption.setNeedAddress(true);
+            //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+            mLocationOption.setOnceLocationLatest(true);
             //设置为高精度定位模式
             mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+            //设置定位间隔,单位毫秒,默认为2000ms, 设置成1s更新一次
+            mLocationOption.setInterval(1000);
             //设置定位参数
             mlocationClient.setLocationOption(mLocationOption);
             // 此方法为每隔固定时间会发起一次定位请求，为了减少电量消耗或网络流量消耗，
             // 注意设置合适的定位时间的间隔（最小间隔支持为2000ms），并且在合适时间调用stopLocation()方法来取消定位请求
-            // 在定位结束后，在合适的生命周期调用onDestroy()方法
-            // 在单次定位情况下，定位无论成功与否，都无需调用stopLocation()方法移除请求，定位sdk内部会移除
             mlocationClient.startLocation();//启动定位
         }
     }
 
-    /**
-     * todo: 销毁监听器
-     */
+    /**销毁监听器*/
     @Override
     public void deactivate() {
         mListener = null;
@@ -548,11 +492,11 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         //暂停地图定位
         mapView.onPause();
     }
+
+
     //*************图表可视化相关方法*********************
 
-    /**
-     * todo: 更新三周加速度
-     */
+    /**更新三周加速度*/
     private void updateChart() {
         //设定长度为20
         int length = series.getItemCount();
@@ -596,10 +540,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         chart.invalidate();
     }
 
-    /**
-     * todo: 设置坐标轴以及曲线可视化变量值
-     * @return
-     */
+    /**设置坐标轴以及曲线可视化变量值*/
     private XYMultipleSeriesRenderer getDemoRenderer() {
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         renderer.setChartTitle("加速度变化图");//标题
@@ -641,10 +582,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         return renderer;
     }
 
-    /**
-     * todo: 初始化曲线上的数据
-     * @return
-     */
+    /**初始化曲线上的数据*/
     private XYMultipleSeriesDataset getDateDemoDataset() {//初始化的数据
         dataset = new XYMultipleSeriesDataset();
         final int nr = 10;
@@ -709,9 +647,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         isRecording = true;
     }
 
-    /**
-     * todo: 结束录像
-     */
+    /**结束录像*/
     private void endRecoder(){
         if (isRecording) {
             //通过AlertDialog.Builder这个类来实例化我们的一个AlertDialog的对象
