@@ -645,9 +645,16 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
             return;
             //   创建视频文件
         }
-        camera = Camera.open();
+        camera = Camera.open(0);
         camera.setDisplayOrientation(90);
+        Camera.Parameters parameter = camera.getParameters();
+        parameter.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+        List<Camera.Size> prviewSizeList = parameter.getSupportedPreviewSizes();
+        List<Camera.Size> videoSizeList = parameter.getSupportedVideoSizes();
+        parameter.setPreviewSize(prviewSizeList.get(0).width,prviewSizeList.get(0).height);
+        camera.setParameters(parameter);
         camera.unlock();
+        int index=bestVideoSize(prviewSizeList.get(0).width,videoSizeList);
         //新建视频文件
         videoFile = new File(fileVideo + ".mp4");
         mRecorder = new MediaRecorder();
@@ -660,9 +667,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         //设置图像编码格式
         mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
         //设置视频尺寸
-//        mRecorder.setVideoSize(300, 400);
+        mRecorder.setVideoSize(videoSizeList .get(index).width,videoSizeList .get(index).height);
         //每秒16帧
-//        mRecorder.setVideoFrameRate(16);
+        mRecorder.setVideoFrameRate(16);
+        mRecorder.setVideoEncodingBitRate(20*1024*1024);
         mRecorder.setOutputFile(videoFile.getAbsolutePath());
         //使用surfaceView来预览视频
         mRecorder.setPreviewDisplay(sView.getHolder().getSurface());
@@ -677,6 +685,29 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         mRecorder.start();
 
         isRecording = true;
+    }
+
+    /**查找出最接近的视频录制分辨率*/
+    public int bestVideoSize(int _w, List<Camera.Size> videoSizeList){
+        //降序排列
+        Collections.sort(videoSizeList, new Comparator<Camera.Size>() {
+            @Override
+            public int compare(Camera.Size lhs, Camera.Size rhs) {
+                if (lhs.width > rhs.width) {
+                    return -1;
+                } else if (lhs.width == rhs.width) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+        });
+        for(int i=0;i<videoSizeList.size();i++){
+            if(videoSizeList.get(i).width<_w){
+                return i;
+            }
+        }
+        return 0;
     }
 
     /**结束录像*/
