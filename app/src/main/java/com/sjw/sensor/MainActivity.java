@@ -633,10 +633,8 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         return dataset;
     }
 
-    //*************录像相关方法**************************
-    /**
-     * todo: 开始录像，并保存录像文件
-     */
+//*************录像相关方法**************************
+    /**开始录像，并保存录像文件*/
     private void startRecoder(){
         if (!Environment.getExternalStorageState().equals(
                 android.os.Environment.MEDIA_MOUNTED)) {
@@ -669,7 +667,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         //设置视频尺寸
         mRecorder.setVideoSize(videoSizeList .get(index).width,videoSizeList .get(index).height);
         //每秒16帧
-        mRecorder.setVideoFrameRate(16);
+//        mRecorder.setVideoFrameRate(16);
         mRecorder.setVideoEncodingBitRate(20*1024*1024);
         mRecorder.setOutputFile(videoFile.getAbsolutePath());
         //使用surfaceView来预览视频
