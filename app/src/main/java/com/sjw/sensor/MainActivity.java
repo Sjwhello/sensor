@@ -15,9 +15,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.SurfaceView;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import com.amap.api.location.AMapLocation;
@@ -27,7 +25,6 @@ import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.*;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.MyLocationStyle;
-import com.amap.api.maps.model.Polyline;
 import com.amap.api.maps.model.PolylineOptions;
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
@@ -47,7 +44,6 @@ import java.util.*;
 public class MainActivity extends Activity implements SensorEventListener, LocationSource, AMapLocationListener {
 //加速度相关属性******************************************************
     private EditText et1;
-    private TextView t1;
     private Button btn_start, btn_end, btn_ensure;
     private SensorManager sm;
     private Sensor sensor;
