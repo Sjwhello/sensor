@@ -277,8 +277,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
             //判断文件名是否为空，为空则不符合要求，提示用户输入不合法
             if (!etacc.equals("")) {
                 long curr = System.currentTimeMillis();
-                String filetext = "";
-                filetext += "/sdcard/Android/" + et1.getText().toString()+curr;
+                String filetext = "/sdcard/Android/" + etacc + curr;
                 if (!filetext.contains(".")) {
                     fileVideo = filetext;
                     filetext += ".txt";
@@ -300,7 +299,8 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                     }
                     btn_start.setVisibility(View.VISIBLE);
                 } else {
-                    et1.setText("文件名不正确，有非法符号或者错误信息");
+                    Toast.makeText(MainActivity.this,"文件名不正确，有非法符号或者错误信息",Toast.LENGTH_LONG).show();
+                    //et1.setText("文件名不正确，有非法符号或者错误信息");
                 }
             } else {
                 Toast.makeText(MainActivity.this, "输入文件名空，请重新输入！", Toast.LENGTH_LONG).show();
@@ -655,8 +655,8 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         //设置文件输出格式
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        //设置图像编码格式
-        mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+        //设置图像编码格式MPEG_4_SP
+        mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         //设置视频尺寸
         mRecorder.setVideoSize(videoSizeList .get(index).width,videoSizeList .get(index).height);
         //每秒16帧
