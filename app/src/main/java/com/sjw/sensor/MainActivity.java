@@ -276,12 +276,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
             String etacc = et1.getText().toString();
             //判断文件名是否为空，为空则不符合要求，提示用户输入不合法
             if (!etacc.equals("")) {
-                //获取当前时间
-                Date date = new Date();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                String curr = sdf.format(date);
+                long curr = System.currentTimeMillis();
                 String filetext = "";
-                filetext += "/sdcard/Android/" + et1.getText().toString()+"-"+curr;
+                filetext += "/sdcard/Android/" + et1.getText().toString()+curr;
                 if (!filetext.contains(".")) {
                     fileVideo = filetext;
                     filetext += ".txt";
