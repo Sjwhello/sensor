@@ -42,7 +42,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class MainActivity extends Activity implements SensorEventListener, LocationSource, AMapLocationListener {
-//加速度相关属性******************************************************
+    //加速度相关属性******************************************************
     private EditText et1;
     private Button btn_start, btn_end, btn_ensure;
     private SensorManager sm;
@@ -60,7 +60,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private Sensor accelerometerSensor;
 //****************************************************************
 
-//显示地图需要的变量 地图相关的配置**************************************
+    //显示地图需要的变量 地图相关的配置**************************************
     private MapView mapView;//地图控件
     private AMap aMap;//地图对象
     //定位需要的声明
@@ -74,7 +74,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private boolean isFirstLatLng;
 //**************************************************************
 
-//*******************设置录屏相关属性*******************************
+    //*******************设置录屏相关属性*******************************
     //定义视频文件
     private File videoFile;
     private MediaRecorder mRecorder;
@@ -86,7 +86,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     private String fileVideo;
 //***************************************************************
 
-//*****************有关图表的属性和方法********************************
+    //*****************有关图表的属性和方法********************************
     int constNum = 100;
     private GraphicalView chart;
     private float addY = -1;
@@ -145,8 +145,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME);//注册加速度传感器
     }
 
-    /**初始化加速度相关的变量*/
-    public void initAcc(){
+    /**
+     * 初始化加速度相关的变量
+     */
+    public void initAcc() {
         //加速度
         sm = (SensorManager) this.getSystemService(SENSOR_SERVICE);
         sensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -164,7 +166,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         mycalendar = Calendar.getInstance();
     }
 
-    /**获取需要用到的手机权限*/
+    /**
+     * 获取需要用到的手机权限
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -173,11 +177,13 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 && grantResults[1] == PackageManager.PERMISSION_DENIED
                 && grantResults[2] == PackageManager.PERMISSION_DENIED
                 && grantResults[3] == PackageManager.PERMISSION_DENIED) {
-            System.out.println("权限的长度："+permissions.length+",grant:"+grantResults.length);
+            System.out.println("权限的长度：" + permissions.length + ",grant:" + grantResults.length);
         }
     }
 
-    /**更新手机屏幕显示信息，并将从手机获取的数据写入文件中 */
+    /**
+     * 更新手机屏幕显示信息，并将从手机获取的数据写入文件中
+     */
     public void updateGUI() {
         runOnUiThread(new Runnable() {
             @Override
@@ -228,7 +234,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         }
     }
 
-    /**点击开始按钮，触发获取手机加速度等数据*/
+    /**
+     * 点击开始按钮，触发获取手机加速度等数据
+     */
     class StartClassListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
@@ -267,41 +275,40 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     }
 
-    /**点击触发存储事件， 开始存储数据*/
+    /**
+     * 点击触发存储事件， 开始存储数据
+     */
     class EnsureClassListener implements View.OnClickListener {
 
         @Override
         public void onClick(View v) {
+            //根据Android版本获取存储路径  Android中规定只有两个地方可以读写，自定义文件夹读写可能会报错
+            String sdPath = PathUtils.getSDPath(MainActivity.this);
             //接受客户端传来的文件名
             String etacc = et1.getText().toString();
             //判断文件名是否为空，为空则不符合要求，提示用户输入不合法
             if (!etacc.equals("")) {
                 long curr = System.currentTimeMillis();
-                String filetext = "/sdcard/Android/" + etacc + curr;
-                if (!filetext.contains(".")) {
-                    fileVideo = filetext;
-                    filetext += ".txt";
-                    fi = new File(filetext);
-                    if (!fi.exists()) {//创建数据文本文件
-                        System.out.println("creating it now!");
-                        try {
-                            fi.createNewFile();
-                            Toast.makeText(MainActivity.this, "File isn't exits.Now,create it.",
-                                    Toast.LENGTH_LONG).show();
-                        } catch (IOException e) {
-                            Toast.makeText(MainActivity.this, "新建文件失败", Toast.LENGTH_LONG).show();
-                            e.printStackTrace();
-                            System.out.println(e.toString());
-                            finish();
-                        }
-                    } else {
-                        Toast.makeText(MainActivity.this, "文件存在!", Toast.LENGTH_LONG).show();
+                String filetext = sdPath + "/" + etacc + curr;
+                fileVideo = filetext;
+                filetext += ".txt";
+                fi = new File(filetext);
+                if (!fi.exists()) {//创建数据文本文件
+                    System.out.println("creating it now!");
+                    try {
+                        fi.createNewFile();
+                        Toast.makeText(MainActivity.this, "File isn't exits.Now,create it.",
+                                Toast.LENGTH_LONG).show();
+                    } catch (IOException e) {
+                        Toast.makeText(MainActivity.this, "新建文件失败", Toast.LENGTH_LONG).show();
+                        e.printStackTrace();
+                        System.out.println(e.toString());
+                        finish();
                     }
-                    btn_start.setVisibility(View.VISIBLE);
                 } else {
-                    Toast.makeText(MainActivity.this,"文件名不正确，有非法符号或者错误信息",Toast.LENGTH_LONG).show();
-                    //et1.setText("文件名不正确，有非法符号或者错误信息");
+                    Toast.makeText(MainActivity.this, "文件存在!", Toast.LENGTH_LONG).show();
                 }
+                btn_start.setVisibility(View.VISIBLE);
             } else {
                 Toast.makeText(MainActivity.this, "输入文件名空，请重新输入！", Toast.LENGTH_LONG).show();
             }
@@ -309,7 +316,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     }
 
-    /**点击结束按钮，结束获取手机中的各项数据*/
+    /**
+     * 点击结束按钮，结束获取手机中的各项数据
+     */
     class EndClassListener implements View.OnClickListener {
         @Override
         public void onClick(View arg0) {
@@ -332,7 +341,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     }
 
 // -----------------------获取定位信息--------------------------------------地图相关的方法
-    /**开启定位的一些配置信息*/
+
+    /**
+     * 开启定位的一些配置信息
+     */
     private void initLoc(Bundle savedInstanceState) {
         //显示地图
         mapView = (MapView) findViewById(R.id.map);
@@ -389,8 +401,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     }
 
-    /**绘制两个坐标点之间的线段,从以前位置到现在位置*/
-    private void setUpMap(LatLng oldData,LatLng newData ) {
+    /**
+     * 绘制两个坐标点之间的线段,从以前位置到现在位置
+     */
+    private void setUpMap(LatLng oldData, LatLng newData) {
 
         // 绘制一个大地曲线
         aMap.addPolyline((new PolylineOptions())
@@ -400,10 +414,12 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     }
 
 
-    /**回调位置信息*/
+    /**
+     * 回调位置信息
+     */
     @Override
     public void onLocationChanged(AMapLocation amapLocation) {
-        if (amapLocation != null&&mListener != null) {
+        if (amapLocation != null && mListener != null) {
             if (amapLocation.getErrorCode() == 0) {
                 //定位成功回调信息，设置相关消息
                 /*回调可以获取的信息如下：
@@ -430,17 +446,17 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 //Toast.makeText(getApplicationContext(), buffer, Toast.LENGTH_SHORT).show();
                 mListener.onLocationChanged(amapLocation);// 显示系统小蓝点
                 //定位成功
-                LatLng newLatLng = new LatLng(amapLocation.getLatitude(),amapLocation.getLongitude());
+                LatLng newLatLng = new LatLng(amapLocation.getLatitude(), amapLocation.getLongitude());
 
-                if(isFirstLatLng){
+                if (isFirstLatLng) {
                     //记录第一次的定位信息
                     oldLatLng = newLatLng;
                     isFirstLatLng = false;
                 }
                 //位置有变化
-                if(oldLatLng != newLatLng){
+                if (oldLatLng != newLatLng) {
                     Log.e("Amap", amapLocation.getLatitude() + "," + amapLocation.getLongitude());
-                    setUpMap( oldLatLng , newLatLng );
+                    setUpMap(oldLatLng, newLatLng);
                     oldLatLng = newLatLng;
                 }
 
@@ -456,7 +472,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         }
     }
 
-    /**激活监听器*/
+    /**
+     * 激活监听器
+     */
     @Override
     public void activate(OnLocationChangedListener listener) {
         mListener = listener;
@@ -484,7 +502,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         }
     }
 
-    /**销毁监听器*/
+    /**
+     * 销毁监听器
+     */
     @Override
     public void deactivate() {
         mListener = null;
@@ -506,7 +526,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         super.onDestroy();
         mapView.onDestroy();
         //销毁定位对象
-        if(null != mlocationClient){
+        if (null != mlocationClient) {
             mlocationClient.onDestroy();
         }
     }
@@ -521,7 +541,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
     //*************图表可视化相关方法*********************
 
-    /**更新三周加速度*/
+    /**
+     * 更新三周加速度
+     */
     private void updateChart() {
         //设定长度为20
         int length = series.getItemCount();
@@ -565,7 +587,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         chart.invalidate();
     }
 
-    /**设置坐标轴以及曲线可视化变量值*/
+    /**
+     * 设置坐标轴以及曲线可视化变量值
+     */
     private XYMultipleSeriesRenderer getDemoRenderer() {
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         renderer.setChartTitle("加速度变化图");//标题
@@ -607,7 +631,9 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         return renderer;
     }
 
-    /**初始化曲线上的数据*/
+    /**
+     * 初始化曲线上的数据
+     */
     private XYMultipleSeriesDataset getDateDemoDataset() {//初始化的数据
         dataset = new XYMultipleSeriesDataset();
         final int nr = 10;
@@ -627,8 +653,11 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
     }
 
 //*************录像相关方法**************************
-    /**开始录像，并保存录像文件*/
-    private void startRecoder(){
+
+    /**
+     * 开始录像，并保存录像文件
+     */
+    private void startRecoder() {
         if (!Environment.getExternalStorageState().equals(
                 android.os.Environment.MEDIA_MOUNTED)) {
             Toast.makeText(MainActivity.this, "SD卡不存在！",
@@ -642,10 +671,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         parameter.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         List<Camera.Size> prviewSizeList = parameter.getSupportedPreviewSizes();
         List<Camera.Size> videoSizeList = parameter.getSupportedVideoSizes();
-        parameter.setPreviewSize(prviewSizeList.get(0).width,prviewSizeList.get(0).height);
+        parameter.setPreviewSize(prviewSizeList.get(0).width, prviewSizeList.get(0).height);
         camera.setParameters(parameter);
         camera.unlock();
-        int index=bestVideoSize(prviewSizeList.get(0).width,videoSizeList);
+        int index = bestVideoSize(prviewSizeList.get(0).width, videoSizeList);
         //新建视频文件
         videoFile = new File(fileVideo + ".mp4");
         mRecorder = new MediaRecorder();
@@ -658,10 +687,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         //设置图像编码格式MPEG_4_SP
         mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         //设置视频尺寸
-        mRecorder.setVideoSize(videoSizeList .get(index).width,videoSizeList .get(index).height);
+        mRecorder.setVideoSize(videoSizeList.get(index).width, videoSizeList.get(index).height);
         //每秒16帧
 //        mRecorder.setVideoFrameRate(16);
-        mRecorder.setVideoEncodingBitRate(20*1024*1024);
+        mRecorder.setVideoEncodingBitRate(20 * 1024 * 1024);
         mRecorder.setOutputFile(videoFile.getAbsolutePath());
         //使用surfaceView来预览视频
         mRecorder.setPreviewDisplay(sView.getHolder().getSurface());
@@ -678,8 +707,10 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
         isRecording = true;
     }
 
-    /**查找出最接近的视频录制分辨率*/
-    public int bestVideoSize(int _w, List<Camera.Size> videoSizeList){
+    /**
+     * 查找出最接近的视频录制分辨率
+     */
+    public int bestVideoSize(int _w, List<Camera.Size> videoSizeList) {
         //降序排列
         Collections.sort(videoSizeList, new Comparator<Camera.Size>() {
             @Override
@@ -693,37 +724,35 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
                 }
             }
         });
-        for(int i=0;i<videoSizeList.size();i++){
-            if(videoSizeList.get(i).width<_w){
+        for (int i = 0; i < videoSizeList.size(); i++) {
+            if (videoSizeList.get(i).width < _w) {
                 return i;
             }
         }
         return 0;
     }
 
-    /**结束录像*/
-    private void endRecoder(){
+    /**
+     * 结束录像
+     */
+    private void endRecoder() {
         if (isRecording) {
             //通过AlertDialog.Builder这个类来实例化我们的一个AlertDialog的对象
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
             //设置Title的内容
             builder.setTitle("弹窗！");
             //设置Content来显示一个信息
-            builder.setMessage("是否保存"+videoFile.getName()+"视频文件？");
-            builder.setPositiveButton("保存", new DialogInterface.OnClickListener()
-            {
+            builder.setMessage("是否保存" + videoFile.getName() + "视频文件？");
+            builder.setPositiveButton("保存", new DialogInterface.OnClickListener() {
                 @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
+                public void onClick(DialogInterface dialog, int which) {
                     Toast.makeText(MainActivity.this, "视频保存成功！", Toast.LENGTH_SHORT).show();
                 }
             });
             //设置一个NegativeButton，不保存录制的视频文件，实际是将视频删除
-            builder.setNegativeButton("取消", new DialogInterface.OnClickListener()
-            {
+            builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                 @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
+                public void onClick(DialogInterface dialog, int which) {
                     File file = new File(videoFile.getAbsolutePath());
                     if (file.exists()) {
                         file.delete();
@@ -737,7 +766,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
             mRecorder.release();
             mRecorder = null;
             camera.release();
-            camera=null;
+            camera = null;
         }
     }
 }
